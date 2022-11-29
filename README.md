@@ -112,7 +112,7 @@ openssl x509 -noout -text -in rootCA.pem
 8. Create the client key:
 
 ```
-openssl ecparam -genkey -name secp384r1 -out server.key
+openssl genrsa -out genrsa.key 2048
 ```
 
 9. Create the client CSR config file named server_request.config. This is the most basic and minimal CSR configuration, just for testing purposes. Paste the following:
@@ -133,7 +133,7 @@ Note how the OU is “Innovation” to comply with our trust policy.
 10. Create the client CSR:
 
 ```
-openssl req -new -sha512 -nodes -key server.key -out server.csr -config server_request.config
+openssl req -new -sha512 -nodes -key genrsa.key -out genrsa.csr -config server_request.config
 ```
 
 11. Create the client certificate config file named server_cert.config. Paste the following:
@@ -146,11 +146,17 @@ keyUsage = critical, digitalSignature
 12. Create the CA signed client certificate:
 
 ```
-openssl x509 -req -sha512 -days 365 -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out server.pem -extfile server_cert.config
+openssl x509 -req -sha512 -days 365 -in genrsa.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out genrsa.crt -extfile server_cert.config
 ```
 
 13. Verify the client certificate:
 
 ```
-openssl verify -verbose -CAfile rootCA.pem server.pem
+openssl verify -verbose -CAfile rootCA.pem genrsa.crt
+```
+
+14. Convert to PFX
+
+```
+openssl pkcs12 -inkey genrsa.key -in genrsa.crt -export -out genrsa.pfx
 ```
